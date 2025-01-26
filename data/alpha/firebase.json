@@ -1,0 +1,13 @@
+{
+  "hosting": {
+    "site": "kekkai-embed",
+    "public": "build/web-prod",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

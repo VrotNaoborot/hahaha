@@ -1,0 +1,24 @@
+2025/01/26-15:44:20.922 641c Reusing MANIFEST C:\Users\nktle\PycharmProjects\AlphaOS-main\data\sessions\tiler94617\Default\Local Storage\leveldb/MANIFEST-000001
+2025/01/26-15:44:20.927 641c Recovering log #48
+2025/01/26-15:44:20.929 641c Reusing old log C:\Users\nktle\PycharmProjects\AlphaOS-main\data\sessions\tiler94617\Default\Local Storage\leveldb/000048.log 
+2025/01/26-15:45:15.660 5414 Level-0 table #52: started
+2025/01/26-15:45:15.665 5414 Level-0 table #52: 137505 bytes OK
+2025/01/26-15:45:15.666 5414 Delete type=0 #48
+2025/01/26-15:46:15.068 5414 Level-0 table #54: started
+2025/01/26-15:46:15.072 5414 Level-0 table #54: 68863 bytes OK
+2025/01/26-15:46:15.073 5414 Delete type=0 #51
+2025/01/26-15:46:15.074 5414 Compacting 4@0 + 1@1 files
+2025/01/26-15:46:15.082 5414 Generated table #55@0: 585 keys, 552467 bytes
+2025/01/26-15:46:15.083 5414 Compacted 4@0 + 1@1 files => 552467 bytes
+2025/01/26-15:46:15.083 5414 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/01/26-15:46:15.084 5414 Delete type=2 #43
+2025/01/26-15:46:15.084 5414 Delete type=2 #46
+2025/01/26-15:46:15.084 5414 Delete type=2 #49
+2025/01/26-15:46:15.084 5414 Delete type=2 #52
+2025/01/26-15:46:15.084 5414 Delete type=2 #54
+2025/01/26-15:46:25.231 5414 Level-0 table #57: started
+2025/01/26-15:46:25.235 5414 Level-0 table #57: 24574 bytes OK
+2025/01/26-15:46:25.236 5414 Delete type=0 #53
+2025/01/26-15:47:00.446 5414 Level-0 table #59: started
+2025/01/26-15:47:00.449 5414 Level-0 table #59: 21323 bytes OK
+2025/01/26-15:47:00.450 5414 Delete type=0 #56
