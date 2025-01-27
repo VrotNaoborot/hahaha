@@ -1,0 +1,5 @@
+2025/01/27-04:40:48.021 3a03 Creating DB /Users/panu/PycharmProjects/hahaha/data/sessions/test/Default/Local Storage/leveldb since it was missing.
+2025/01/27-04:40:48.035 3a03 Reusing MANIFEST /Users/panu/PycharmProjects/hahaha/data/sessions/test/Default/Local Storage/leveldb/MANIFEST-000001
+2025/01/27-04:43:06.900 2f03 Level-0 table #5: started
+2025/01/27-04:43:06.924 2f03 Level-0 table #5: 151011 bytes OK
+2025/01/27-04:43:06.942 2f03 Delete type=0 #3

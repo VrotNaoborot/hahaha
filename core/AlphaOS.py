@@ -168,12 +168,12 @@ class AlphaOS:
         async with async_playwright() as p:
             browser = await p.chromium.launch_persistent_context(
                 user_data_dir=SESSION_PATH / f"{self.mail.split('@')[0]}",
-                headless=True,
+                headless=False,
                 proxy=self.proxy,
                 args=[
                     f"--disable-extensions-except={EXTENSION_PATH}",
                     f"--load-extension={EXTENSION_PATH}",
-                    f"--headless=new"
+                    # f"--headless=new"
                 ],
                 user_agent=gen_ua
             )
