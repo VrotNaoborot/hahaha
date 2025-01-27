@@ -102,11 +102,13 @@ class AlphaOS:
                 try:
                     await page.goto(f'chrome-extension://{self.extension_id}/popup.html')
                     logger.info(f'{self.mail} Load popup')
+                    print(f'{self.mail} Load popup')
 
                     await page.wait_for_load_state('load')
                     await asyncio.sleep(random.randint(5, 10))
                     await page.locator('xpath=//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click()
                     logger.info(f'{self.mail} Load mining page')
+                    print(f'{self.mail} Load mining page')
 
                     await page.wait_for_load_state('load')
                     await asyncio.sleep(random.randint(1, 3))
@@ -115,27 +117,31 @@ class AlphaOS:
 
                     if await button_locator_login.is_visible():
                         await button_locator_login.click()
-                        if await page.locator('xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[2]/div[1]/div/div[2]/div[2]/div/span[2]/span').text_content() == '--':
+                        if await page.locator(
+                                'xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[2]/div[1]/div/div[2]/div[2]/div/span[2]/span').text_content() == '--':
                             raise UnauthorizedError("User not login")
                         else:
                             print("check")
+                            continue
 
                     button_start_mining = page.locator('button', has_text='Start Mining')
                     button_stop_mining = page.locator('button', has_text='Stop Mining')
-
-                    input()
 
                     if await button_start_mining.count() > 0:
                         await asyncio.sleep(3)
                         await button_start_mining.click()
                         logger.info(f"Account: {self.mail} Start mining.")
+                        print(f"Account: {self.mail} Start mining.")
+
                         if await page.locator('h2', has_text='Automated Mining').first.is_visible():
                             await page.locator('xpath=//*[@id="content-:rt:"]/span[3]/button').click()
+
                     elif await button_stop_mining.count() > 0:
                         logger.info(f"Account: {self.mail} Mining is already in progress.")
                     else:
                         logger.error(
                             f"Account: {self.mail} Buttons start/stop not found. Sleep delay: {not_found_sleep}")
+                        print(f"Account: {self.mail} Buttons start/stop not found. Sleep delay: {not_found_sleep}")
                         await asyncio.sleep(not_found_sleep)
                         not_found_sleep *= 2
                         continue
@@ -148,21 +154,27 @@ class AlphaOS:
                     time_sleep_interval = random.randint(ACCOUNT_CHECK_INTERVAL[0], ACCOUNT_CHECK_INTERVAL[1])
                     logger.info(
                         f"Account: {self.mail} | Ready to claim: {mining_points} | Total balance: {total_balance} | Sleep: {time_sleep_interval} sec.")
+                    print(f"Account: {self.mail} | Ready to claim: {mining_points} | Total balance: {total_balance} | Sleep: {time_sleep_interval} sec.")
                     if try_parse_int(mining_points) > 10:
                         await page.locator('button', has_text='Claim').click()
                         logger.info(f'Account: {self.mail} | Claim click.')
+                        print(f'Account: {self.mail} | Claim click.')
+
                     await asyncio.sleep(time_sleep_interval)
                 except UnauthorizedError:
                     logger.error(f"Account: {self.mail} is not authorized! Account discconected")
+                    print(f"Account: {self.mail} is not authorized! Account discconected")
                     await self.browser.close()
                     return
                 except TimeoutError as e:
                     logger.error(f"Account: {self.mail} not found item. Try again... \n{e}")
+                    print(f"Account: {self.mail} not found item. Try again... \n{e}")
                     await asyncio.sleep(not_found_sleep)
                     not_found_sleep *= 2
                     continue
         except Exception as ex:
             logger.error(f"Account: {self.mail} Err: {ex}")
+            print(f"Account: {self.mail} Err: {ex}")
             return
 
     async def login_account(self):
@@ -174,6 +186,7 @@ class AlphaOS:
             await page.goto(f"https://alphaos.net/point")
             await page.wait_for_load_state("load")
             await asyncio.sleep(3)
+            print("site load")
 
             await page.locator(
                 'xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/div[1]').click()
