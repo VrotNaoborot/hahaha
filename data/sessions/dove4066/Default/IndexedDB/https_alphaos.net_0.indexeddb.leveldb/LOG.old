@@ -1,0 +1,6 @@
+2025/01/27-20:32:04.788 2374 Reusing MANIFEST C:\Users\nktle\PycharmProjects\hahaha\data\sessions\dove4066\Default\IndexedDB\https_alphaos.net_0.indexeddb.leveldb/MANIFEST-000001
+2025/01/27-20:32:04.789 2374 Recovering log #3
+2025/01/27-20:32:04.792 2374 Reusing old log C:\Users\nktle\PycharmProjects\hahaha\data\sessions\dove4066\Default\IndexedDB\https_alphaos.net_0.indexeddb.leveldb/000003.log 
+2025/01/27-20:32:05.623 5328 Level-0 table #5: started
+2025/01/27-20:32:05.637 5328 Level-0 table #5: 4183557 bytes OK
+2025/01/27-20:32:05.638 5328 Delete type=0 #3

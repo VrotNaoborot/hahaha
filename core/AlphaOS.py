@@ -4,6 +4,7 @@ from typing import Optional
 from utils.exeptions_os import *
 from utils.data_change import *
 from patchright.async_api import *
+from patchright.sync_api import *
 from data.config import *
 
 
@@ -27,6 +28,18 @@ class AlphaOS:
         self.extension_id = extension_id
         self.user_agent = user_agent
         logger.info(f"Account: {self.mail} init")
+
+    async def _check_data(self):
+        await self._initialize_browser()
+        if not self.extension_id:
+            self.extension_id = await self.take_extension_id()
+
+        if not self.user_agent:
+            self.user_agent = ua.random
+            await save_ua(user_id=self.id, ua=self.user_agent)
+
+        if not self.extension_id:
+            self.extension_id = await self.take_extension_id()
 
     async def farm_cookies(self):
         logger.info(f"Account: {self.mail} Cookie farm start.")
@@ -78,16 +91,7 @@ class AlphaOS:
 
     async def work(self):
         try:
-            await self._initialize_browser()
-            if not self.extension_id:
-                self.extension_id = await self.take_extension_id()
-
-            if not self.user_agent:
-                self.user_agent = ua.random
-                await save_ua(user_id=self.id, ua=self.user_agent)
-
-            if not self.extension_id:
-                self.extension_id = await self.take_extension_id()
+            await self._check_data()
 
             await self.browser.new_page()
             page = await self.browser.new_page()
@@ -110,14 +114,23 @@ class AlphaOS:
                     button_locator_login = page.locator('button', has_text='Sign-In / Sign-Up')
 
                     if await button_locator_login.is_visible():
-                        raise UnauthorizedError("User not login")
+                        await button_locator_login.click()
+                        if await page.locator('xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[2]/div[1]/div/div[2]/div[2]/div/span[2]/span').text_content() == '--':
+                            raise UnauthorizedError("User not login")
+                        else:
+                            print("check")
 
                     button_start_mining = page.locator('button', has_text='Start Mining')
                     button_stop_mining = page.locator('button', has_text='Stop Mining')
 
+                    input()
+
                     if await button_start_mining.count() > 0:
+                        await asyncio.sleep(3)
                         await button_start_mining.click()
                         logger.info(f"Account: {self.mail} Start mining.")
+                        if await page.locator('h2', has_text='Automated Mining').first.is_visible():
+                            await page.locator('xpath=//*[@id="content-:rt:"]/span[3]/button').click()
                     elif await button_stop_mining.count() > 0:
                         logger.info(f"Account: {self.mail} Mining is already in progress.")
                     else:
@@ -135,7 +148,7 @@ class AlphaOS:
                     time_sleep_interval = random.randint(ACCOUNT_CHECK_INTERVAL[0], ACCOUNT_CHECK_INTERVAL[1])
                     logger.info(
                         f"Account: {self.mail} | Ready to claim: {mining_points} | Total balance: {total_balance} | Sleep: {time_sleep_interval} sec.")
-                    if try_parse_int(mining_points) > 0:
+                    if try_parse_int(mining_points) > 10:
                         await page.locator('button', has_text='Claim').click()
                         logger.info(f'Account: {self.mail} | Claim click.')
                     await asyncio.sleep(time_sleep_interval)
@@ -152,46 +165,119 @@ class AlphaOS:
             logger.error(f"Account: {self.mail} Err: {ex}")
             return
 
-    async def create_profile_and_login(self):
-        if not self.user_agent:
-            self.user_agent = ua.random
-            await save_ua(user_id=self.id, ua=self.user_agent)
+    async def login_account(self):
+        try:
+            await self._check_data()
+            page = await self.browser.new_page()
 
-        logger.info(f"Account: {self.mail} login...")
-        async with async_playwright() as p:
-            browser = await p.chromium.launch_persistent_context(
-                user_data_dir=SESSION_PATH / f"{self.mail.split('@')[0]}",
-                headless=False,
-                proxy=self.proxy,
-                args=[
-                    f"--disable-extensions-except={EXTENSION_PATH}",
-                    f"--load-extension={EXTENSION_PATH}",
-                    # f"--headless=new"
-                ],
-                user_agent=self.user_agent
-            )
-            self.browser = browser
+            print(f"Account: {self.mail} site load...")
+            await page.goto(f"https://alphaos.net/point")
+            await page.wait_for_load_state("load")
+            await asyncio.sleep(3)
 
-            if not self.extension_id:
-                self.extension_id = await self.take_extension_id()
+            await page.locator(
+                'xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/div[1]').click()
+            print("click")
+            await asyncio.sleep(2)
+            await page.locator('xpath=//*[@id="content-:r7g:"]/div/div/div/span[6]/button/span/span/button').click()
 
-            page = await browser.new_page()
+            # print(f"Account: {self.mail} open login form...")
+            # await page.goto(f"https://alphaos.net/point#sign-in")
+            # await asyncio.sleep(5)
+            # input()
 
-            await page.goto(f"chrome-extension://{self.extension_id}/popup.html")
-            await asyncio.sleep(10_000)
+            # await page.goto(f"chrome-extension://{self.extension_id}/popup.html")
+            # await page.wait_for_load_state("load")
+            # #
+            # await page.locator('//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click()
+            # await page.wait_for_load_state('load')
+            #
+            # button_locator_login = page.locator('button', has_text='Sign-In / Sign-Up')
+            # if not await button_locator_login.is_visible():
+            #     pass
+            #
+            # await button_locator_login.click()
+            # await page.wait_for_load_state('load')
+
+            # await page.wait_for_selector('input[placeholder="Please enter email to continue"]')
+            print(f"Account: {self.mail} enter email..")
+            await asyncio.sleep(3)
+            input_mail = page.locator(
+                'input[placeholder="Please enter email to continue"]')
+            await input_mail.click()
+            await page.keyboard.type(self.mail, delay=300)
+
+            if await page.locator('span', has_text='Invalid Address').first.is_visible():
+                logger.error(f"Account: {self.mail} incorrect mail.")
+                print(f"Account: {self.mail} incorrect mail.")
+                exit()
+
+            await page.locator(
+                "xpath=/html/body/div[1]/div[4]/div/div[2]/div/div[3]/div/div[3]/span/span/button").click()
+            print(f"Account: {self.mail} click next..")
+
+            await page.locator('xpath=//*[@id="content-:ra5:"]/div/span[2]/span/button').click()
+            print(f"Account: {self.mail} agree..")
+
+            await page.locator('span', has_text='Enter Verification Code to continue').first.is_visible()
+            print(f"Account: {self.mail} message send..")
+
+            while True:
+                code = input(f"Account: {self.mail} enter code: ").strip()
+                await page.fill('xpath=/html/body/div[1]/div[4]/div/div[3]/div/div[3]/div/div/input', code)
+                await asyncio.sleep(3)
+                if await page.locator('span', has_text='Incorrect Verification Code, Try Again').first.is_visible():
+                    print(f"Account: {self.mail} incorrect code")
+                    await page.fill('xpath=/html/body/div[1]/div[4]/div/div[3]/div/div[3]/div/div/input', "")
+                    continue
+                if await page.locator('span', has_text='Welcome to AlphaOS!').first.is_visible():
+                    print(f"Account: {self.mail} Good login")
+                    return
+
+        except Exception as ex:
+            logger.error(ex)
+            print(ex)
+
+    # async def create_profile_and_login(self):
+    #     if not self.user_agent:
+    #         self.user_agent = ua.random
+    #         await save_ua(user_id=self.id, ua=self.user_agent)
+
+    # logger.info(f"Account: {self.mail} login start")
+    # async with async_playwright() as p:
+    #     browser = await p.chromium.launch_persistent_context(
+    #         user_data_dir=SESSION_PATH / f"{self.mail.split('@')[0]}",
+    #         headless=False,
+    #         proxy=self.proxy,
+    #         args=[
+    #             f"--disable-extensions-except={EXTENSION_PATH}",
+    #             f"--load-extension={EXTENSION_PATH}",
+    #             # f"--headless=new"
+    #         ],
+    #         user_agent=self.user_agent
+    #     )
+    #     self.browser = browser
+    #
+    #     if not self.extension_id:
+    #         self.extension_id = await self.take_extension_id()
+    #
+    #     page = await browser.new_page()
+    #
+    #     await page.goto(f"chrome-extension://{self.extension_id}/popup.html")
+    #     await asyncio.sleep(10_000)
 
     async def _initialize_browser(self):
         p = await async_playwright().start()
         self.browser = await p.chromium.launch_persistent_context(
             user_data_dir=SESSION_PATH / f"{self.mail.split('@')[0]}",
             channel="chrome",
-            headless=True,
+            headless=False,
             no_viewport=False,
             proxy=self.proxy,
             args=[
                 f"--disable-extensions-except={EXTENSION_PATH}",
                 f"--load-extension={EXTENSION_PATH}",
-                f"--headless=new"
+                # f"--headless=new"
             ],
             user_agent=self.user_agent
         )

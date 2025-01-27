@@ -1,3 +1,22 @@
-2025/01/27-14:53:17.229 3d07 Reusing MANIFEST /Users/panu/PycharmProjects/hahaha/data/sessions/test/Default/Local Storage/leveldb/MANIFEST-000001
-2025/01/27-14:53:17.231 3d07 Recovering log #4
-2025/01/27-14:53:17.232 3d07 Reusing old log /Users/panu/PycharmProjects/hahaha/data/sessions/test/Default/Local Storage/leveldb/000004.log 
+2025/01/27-20:04:39.171 42f0 Reusing MANIFEST C:\Users\nktle\PycharmProjects\hahaha\data\sessions\test\Default\Local Storage\leveldb/MANIFEST-000001
+2025/01/27-20:04:39.175 42f0 Recovering log #234
+2025/01/27-20:04:39.176 42f0 Level-0 table #237: started
+2025/01/27-20:04:39.180 42f0 Level-0 table #237: 30265 bytes OK
+2025/01/27-20:04:39.180 42f0 Recovering log #236
+2025/01/27-20:04:39.182 42f0 Reusing old log C:\Users\nktle\PycharmProjects\hahaha\data\sessions\test\Default\Local Storage\leveldb/000236.log 
+2025/01/27-20:04:39.183 42f0 Delete type=0 #234
+2025/01/27-20:05:39.410 4c5c Level-0 table #239: started
+2025/01/27-20:05:39.414 4c5c Level-0 table #239: 30369 bytes OK
+2025/01/27-20:05:39.415 4c5c Delete type=0 #236
+2025/01/27-20:05:39.415 4c5c Compacting 4@0 + 1@1 files
+2025/01/27-20:05:39.419 4c5c Generated table #240@0: 415 keys, 36506 bytes
+2025/01/27-20:05:39.419 4c5c Compacted 4@0 + 1@1 files => 36506 bytes
+2025/01/27-20:05:39.420 4c5c compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/01/27-20:05:39.420 4c5c Delete type=2 #231
+2025/01/27-20:05:39.420 4c5c Delete type=2 #233
+2025/01/27-20:05:39.420 4c5c Delete type=2 #235
+2025/01/27-20:05:39.420 4c5c Delete type=2 #237
+2025/01/27-20:05:39.421 4c5c Delete type=2 #239
+2025/01/27-20:06:39.416 4c5c Level-0 table #242: started
+2025/01/27-20:06:39.420 4c5c Level-0 table #242: 29567 bytes OK
+2025/01/27-20:06:39.421 4c5c Delete type=0 #238

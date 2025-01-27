@@ -11,9 +11,8 @@ async def action_user(data: list):
         a = input("Select number:\n1. Login accounts\n2. Start automate\n3. Auto farm cookies\n").strip()
         if a == "1":
             for r in data:
-                tasks.append(asyncio.create_task(AlphaOS(id=r['id'], mail=r['mail'], proxy=r['proxy'],
-                                                         extension_id=r.get('extension_id', None),
-                                                         user_agent=r['user_agent']).create_profile_and_login()))
+                await AlphaOS(id=r['id'], mail=r['mail'], proxy=r['proxy'], extension_id=r.get('extension_id', None),
+                              user_agent=r['user_agent']).login_account()
         elif a == "2":
             for s in data:
                 tasks.append(asyncio.create_task(AlphaOS(id=s['id'], mail=s['mail'], proxy=s['proxy'],
@@ -25,6 +24,7 @@ async def action_user(data: list):
                                                          extension_id=f.get('extension_id', None),
                                                          user_agent=f['user_agent']).farm_cookies()))
         else:
+            print(f"Incorrect value.")
             continue
         await asyncio.gather(*tasks)
 
