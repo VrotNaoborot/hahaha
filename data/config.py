@@ -1,14 +1,21 @@
 from pathlib import Path
+import logging
+from fake_useragent import UserAgent
+
+logging.basicConfig(
+    filename="app.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+ua = UserAgent(platforms='desktop', browsers=['Chrome'])
 
 CONFIG_DIR = Path(__file__).resolve().parent
 
-# EXTENSION_ID = 'epcdhidkbcjonofnceaknckkhneeiida'
-# EXTENSION_POPUP = f'chrome-extension://{EXTENSION_ID}/popup.html'
-
 EXTENSION_PATH = CONFIG_DIR / 'alpha'
-
 SESSION_PATH = CONFIG_DIR / 'sessions'
-
+ACCOUNTS_PATH = CONFIG_DIR / 'accounts.csv'
 ACCOUNT_CHECK_INTERVAL = [1000, 5000]  # seconds
 
 NOT_FOUND_SLEEP_START = 5  # seconds

@@ -3,25 +3,8 @@ import random
 from typing import Optional
 from utils.exeptions_os import *
 from utils.data_change import *
-import time
-import logging
-
 from patchright.async_api import *
 from data.config import *
-from colorama import Fore
-from fake_useragent import UserAgent
-
-logging.basicConfig(
-    filename="app.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
-ua = UserAgent(platforms='desktop', browsers=['Chrome'])
-
-gen_ua = ua.random
-logger.info(f"generated ua - {gen_ua}")
 
 
 def try_parse_int(value, default=0):
@@ -32,7 +15,7 @@ def try_parse_int(value, default=0):
 
 
 class AlphaOS:
-    def __init__(self, id: str, mail: str, proxy: str, extension_id: str):
+    def __init__(self, id: str, mail: str, proxy: str, extension_id: str, user_agent: str):
         self.id = id
         self.mail = mail
         self.proxy = {
@@ -41,8 +24,9 @@ class AlphaOS:
             'password': f'{proxy.split("@")[1].split(":")[1]}',
         }
         self.browser: Optional[Browser] = None
-        logger.info(f"Account: {self.mail} AlphaOS instance created for account")
         self.extension_id = extension_id
+        self.user_agent = user_agent
+        logger.info(f"Account: {self.mail} init")
 
     async def farm_cookies(self):
         logger.info(f"Account: {self.mail} Cookie farm start.")
@@ -85,7 +69,7 @@ class AlphaOS:
             extension_id = await page.locator("#extension-id").text_content()
             extension = extension_id.split(":")[1].strip()
             await save_ex_id(extension_id=extension, user_id=self.id)
-            logger.info(f"Account: {self.mail} get extension - {extension_id}")
+            logger.info(f"Account: {self.mail} get extension - {extension}")
             return extension
         except PermissionError as ex:
             logger.error(f"Account: {self.mail} {ex}")
@@ -97,11 +81,16 @@ class AlphaOS:
             await self._initialize_browser()
             if not self.extension_id:
                 self.extension_id = await self.take_extension_id()
-            await self.browser.new_page()
-            page = await self.browser.new_page()
+
+            if not self.user_agent:
+                self.user_agent = ua.random
+                await save_ua(user_id=self.id, ua=self.user_agent)
 
             if not self.extension_id:
                 self.extension_id = await self.take_extension_id()
+
+            await self.browser.new_page()
+            page = await self.browser.new_page()
 
             not_found_sleep = NOT_FOUND_SLEEP_START
 
@@ -164,6 +153,10 @@ class AlphaOS:
             return
 
     async def create_profile_and_login(self):
+        if not self.user_agent:
+            self.user_agent = ua.random
+            await save_ua(user_id=self.id, ua=self.user_agent)
+
         logger.info(f"Account: {self.mail} login...")
         async with async_playwright() as p:
             browser = await p.chromium.launch_persistent_context(
@@ -175,10 +168,9 @@ class AlphaOS:
                     f"--load-extension={EXTENSION_PATH}",
                     # f"--headless=new"
                 ],
-                user_agent=gen_ua
+                user_agent=self.user_agent
             )
             self.browser = browser
-            print(self.extension_id, type(self.extension_id))
 
             if not self.extension_id:
                 self.extension_id = await self.take_extension_id()
@@ -201,7 +193,7 @@ class AlphaOS:
                 f"--load-extension={EXTENSION_PATH}",
                 f"--headless=new"
             ],
-            user_agent=gen_ua
+            user_agent=self.user_agent
         )
 
     async def close_browser(self):
