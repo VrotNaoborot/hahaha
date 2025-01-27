@@ -1,3 +1,2 @@
-2025/01/26-02:09:38.881 a707 Reusing MANIFEST /Users/panu/PycharmProjects/AlphaOs/data/sessions/tiler94617/Default/IndexedDB/https_alphaos.net_0.indexeddb.leveldb/MANIFEST-000001
-2025/01/26-02:09:38.882 a707 Recovering log #3
-2025/01/26-02:09:38.886 a707 Reusing old log /Users/panu/PycharmProjects/AlphaOs/data/sessions/tiler94617/Default/IndexedDB/https_alphaos.net_0.indexeddb.leveldb/000003.log 
+2025/01/27-04:02:03.907 8503 Creating DB /Users/panu/PycharmProjects/hahaha/data/sessions/tiler94617/Default/IndexedDB/https_alphaos.net_0.indexeddb.leveldb since it was missing.
+2025/01/27-04:02:03.922 8503 Reusing MANIFEST /Users/panu/PycharmProjects/hahaha/data/sessions/tiler94617/Default/IndexedDB/https_alphaos.net_0.indexeddb.leveldb/MANIFEST-000001

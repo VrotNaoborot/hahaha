@@ -2,7 +2,7 @@ import asyncio
 import random
 from typing import Optional
 from utils.exeptions_os import *
-
+from utils.data_change import *
 import time
 import logging
 
@@ -32,7 +32,7 @@ def try_parse_int(value, default=0):
 
 
 class AlphaOS:
-    def __init__(self, id: int, mail: str, proxy: str):
+    def __init__(self, id: str, mail: str, proxy: str, extension_id: str):
         self.id = id
         self.mail = mail
         self.proxy = {
@@ -42,6 +42,7 @@ class AlphaOS:
         }
         self.browser: Optional[Browser] = None
         logger.info(f"Account: {self.mail} AlphaOS instance created for account")
+        self.extension_id = extension_id
 
     async def farm_cookies(self):
         logger.info(f"Account: {self.mail} Cookie farm start.")
@@ -67,17 +68,46 @@ class AlphaOS:
         except Exception as ex:
             logger.error(f"Account: {self.mail} broke farm site: {url}. Ex: {ex}")
 
+    async def take_extension_id(self) -> str:
+        """take and save ex_id"""
+        try:
+            page = await self.browser.new_page()
+            await page.goto("chrome://extensions/")
+            await page.wait_for_selector("body")
+            dev_mode = page.locator("#devMode")
+            await dev_mode.wait_for()
+
+            print(f"att - {await dev_mode.get_attribute('aria-pressed')}")
+            if await dev_mode.get_attribute('aria-pressed') == "false":
+                await page.locator("#devMode").click()
+                logger.info(f"Account: {self.mail} devMode click")
+
+            extension_id = await page.locator("#extension-id").text_content()
+            extension = extension_id.split(":")[1].strip()
+            await save_ex_id(extension_id=extension, user_id=self.id)
+            logger.info(f"Account: {self.mail} get extension - {extension_id}")
+            return extension
+        except PermissionError as ex:
+            logger.error(f"Account: {self.mail} {ex}")
+        except Exception as ex:
+            logger.error(f"Account: {self.mail} {ex}")
+
     async def work(self):
         try:
             await self._initialize_browser()
+            if not self.extension_id:
+                self.extension_id = await self.take_extension_id()
             await self.browser.new_page()
             page = await self.browser.new_page()
+
+            if not self.extension_id:
+                self.extension_id = await self.take_extension_id()
 
             not_found_sleep = NOT_FOUND_SLEEP_START
 
             while True:
                 try:
-                    await page.goto(EXTENSION_POPUP)
+                    await page.goto(f'chrome-extension://{self.extension_id}/popup.html')
                     logger.info(f'{self.mail} Load popup')
 
                     await page.wait_for_load_state('load')
@@ -138,17 +168,24 @@ class AlphaOS:
         async with async_playwright() as p:
             browser = await p.chromium.launch_persistent_context(
                 user_data_dir=SESSION_PATH / f"{self.mail.split('@')[0]}",
-                headless=False,
+                headless=True,
                 proxy=self.proxy,
                 args=[
                     f"--disable-extensions-except={EXTENSION_PATH}",
                     f"--load-extension={EXTENSION_PATH}",
+                    f"--headless=new"
                 ],
                 user_agent=gen_ua
             )
+            self.browser = browser
+            print(self.extension_id, type(self.extension_id))
+
+            if not self.extension_id:
+                self.extension_id = await self.take_extension_id()
+
             page = await browser.new_page()
 
-            await page.goto(EXTENSION_POPUP)
+            await page.goto(f"chrome-extension://{self.extension_id}/popup.html")
             await asyncio.sleep(10_000)
 
     async def _initialize_browser(self):
@@ -156,16 +193,15 @@ class AlphaOS:
         self.browser = await p.chromium.launch_persistent_context(
             user_data_dir=SESSION_PATH / f"{self.mail.split('@')[0]}",
             channel="chrome",
-            headless=False,
+            headless=True,
             no_viewport=False,
             proxy=self.proxy,
             args=[
                 f"--disable-extensions-except={EXTENSION_PATH}",
                 f"--load-extension={EXTENSION_PATH}",
-                # f"--headless=new"
+                f"--headless=new"
             ],
             user_agent=gen_ua
-
         )
 
     async def close_browser(self):

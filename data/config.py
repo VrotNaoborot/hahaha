@@ -2,8 +2,9 @@ from pathlib import Path
 
 CONFIG_DIR = Path(__file__).resolve().parent
 
-EXTENSION_ID = 'epcdhidkbcjonofnceaknckkhneeiida'
-EXTENSION_POPUP = f'chrome-extension://{EXTENSION_ID}/popup.html'
+# EXTENSION_ID = 'epcdhidkbcjonofnceaknckkhneeiida'
+# EXTENSION_POPUP = f'chrome-extension://{EXTENSION_ID}/popup.html'
+
 EXTENSION_PATH = CONFIG_DIR / 'alpha'
 
 SESSION_PATH = CONFIG_DIR / 'sessions'

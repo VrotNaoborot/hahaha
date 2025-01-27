@@ -2,15 +2,7 @@ import asyncio
 from core.AlphaOS import AlphaOS
 import csv
 from data.config import CONFIG_DIR
-
-
-def parse_accounts_data():
-    accounts = []
-    with open(CONFIG_DIR / 'accounts.csv', 'r', newline='', encoding='utf-8') as file:
-        reader = csv.DictReader(file, delimiter=';')
-        for row in reader:
-            accounts.append(row)
-    return accounts
+from utils.data_change import *
 
 
 async def action_user(data: list):
@@ -19,14 +11,17 @@ async def action_user(data: list):
         a = input("Select number:\n1. Login accounts\n2. Start automate\n3. Auto farm cookies\n").strip()
         if a == "1":
             for r in data:
-                tasks.append(asyncio.create_task(
-                    AlphaOS(id=r['id'], mail=r['mail'], proxy=r['proxy']).create_profile_and_login()))
+                tasks.append(asyncio.create_task(AlphaOS(id=r['id'], mail=r['mail'], proxy=r['proxy'],
+                                                         extension_id=r.get('extension_id',
+                                                                            None)).create_profile_and_login()))
         elif a == "2":
             for s in data:
-                tasks.append(asyncio.create_task(AlphaOS(id=s['id'], mail=s['mail'], proxy=s['proxy']).work()))
+                tasks.append(asyncio.create_task(AlphaOS(id=s['id'], mail=s['mail'], proxy=s['proxy'],
+                                                         extension_id=s.get('extension_id', None)).work()))
         elif a == "3":
             for f in data:
-                tasks.append(asyncio.create_task(AlphaOS(id=f['id'], mail=f['mail'], proxy=f['proxy']).farm_cookies()))
+                tasks.append(asyncio.create_task(AlphaOS(id=f['id'], mail=f['mail'], proxy=f['proxy'],
+                                                         extension_id=f.get('extension_id', None)).farm_cookies()))
         else:
             continue
         await asyncio.gather(*tasks)
