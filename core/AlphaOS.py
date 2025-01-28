@@ -6,6 +6,9 @@ from utils.data_change import *
 from patchright.async_api import *
 from patchright.sync_api import *
 from data.config import *
+import sys
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 
 def try_parse_int(value, default=0):
@@ -30,7 +33,8 @@ class AlphaOS:
         logger.info(f"Account: {self.mail} init")
 
     async def _check_data(self):
-        await self._initialize_browser()
+        if not self.browser:
+            await self._initialize_browser()
 
         if not self.user_agent:
             self.user_agent = ua.random
@@ -105,6 +109,7 @@ class AlphaOS:
 
             while True:
                 try:
+                    print("Check data")
                     await self._check_data()
 
                     await self.browser.new_page()
@@ -114,6 +119,9 @@ class AlphaOS:
                             lambda response: "api.alphaos.net/apis/users/profile" in response.url and response.request.method == 'GET') as
                     response_info):
                         await page.goto(f'chrome-extension://{self.extension_id}/popup.html', timeout=60_000)
+                        logger.info(f'{self.mail} Load popup')
+                        print(f'{self.mail} Load popup')
+                        await page.wait_for_load_state('load', timeout=60_000)
 
                     response_profile = await response_info.value
 
@@ -121,39 +129,39 @@ class AlphaOS:
                         print(f"Account: {self.mail} logined")
                         pass
                     elif response_profile.status == 401:
-                        logger.error(f"Account: {self.mail} NEED LOGIN. {await response_profile.json()}")
+                        logger.error(f"Account: {self.mail} check login. click btn login..")
+                        print(f"Account: {self.mail} check login. click btn login..")
 
-                        return
+                        await page.locator('xpath=//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click(timeout=60_000)
+                        print("Click img")
+
+                        # await self.user_is_login()
+                        if await self.user_is_login(page):
+                            print(f"Account: {self.mail} site back 200. try again")
+                            await page.close()
+                            continue
+                        else:
+                            print(f"Account: {self.mail} need relogin.")
+                            raise UnauthorizedError
                     else:
                         logger.error(
                             f"Account: {self.mail} back code: {response_profile.status} data: {response_profile.json()}")
-                        print(f"Account: {self.mail} back code: {response_profile.status} data: {response_profile.json()}")
+                        print(
+                            f"Account: {self.mail} back code: {response_profile.status} data: {response_profile.json()}")
 
-                    await page.goto(f'chrome-extension://{self.extension_id}/popup.html', timeout=60_000)
-                    logger.info(f'{self.mail} Load popup')
-                    print(f'{self.mail} Load popup')
+                    # await page.goto(f'chrome-extension://{self.extension_id}/popup.html', timeout=60_000)
 
-                    await page.wait_for_load_state('load', timeout=60_000)
-                    await asyncio.sleep(random.randint(5, 10))
+                    # await asyncio.sleep(random.randint(5, 10))
+                    # await page.locator('xpath=//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click(
+                    #     timeout=60_000)
+                    # logger.info(f'{self.mail} Load mining page')
+                    # print(f'{self.mail} Load mining page')
                     await page.locator('xpath=//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click(
                         timeout=60_000)
-                    logger.info(f'{self.mail} Load mining page')
-                    print(f'{self.mail} Load mining page')
+                    print("Click img")
 
                     await page.wait_for_load_state('load', timeout=60_000)
                     await asyncio.sleep(random.randint(1, 3))
-
-                    # button_locator_login = page.locator('button', has_text='Sign-In / Sign-Up')
-
-                    # if await button_locator_login.is_visible(timeout=60_000):
-                    #     await button_locator_login.click(timeout=60_000)
-                    #     if await page.locator(
-                    #             'xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[2]/div[1]/div/div[2]/div[2]/div/span[2]/span').text_content(
-                    #         timeout=100_000) == '--':
-                    #         raise UnauthorizedError("User not login")
-                    #     else:
-                    #         print("back")
-                    #         continue
 
                     button_start_mining = page.locator('button', has_text='Start Mining')
                     button_stop_mining = page.locator('button', has_text='Stop Mining')
@@ -207,8 +215,6 @@ class AlphaOS:
                     continue
         except KeyboardInterrupt:
             await self._close_browser()
-        finally:
-            await self._close_browser()
 
     async def user_is_login(self, page):
         try:
@@ -254,7 +260,6 @@ class AlphaOS:
 
                 await page.locator('xpath=//span[contains(text(), "JOIN NOW")]').first.click(timeout=60_000)
 
-
                 print(f"Account: {self.mail} click btn JOIN NOW")
                 logger.info(f"Account: {self.mail} click btn JOIN NOW")
 
@@ -289,7 +294,8 @@ class AlphaOS:
                     timeout=60_000)  # https://api.kekkai.io/apis/users/sign-in
                 print(f"Account: {self.mail} agree..")
 
-                await page.locator('span', has_text='Enter Verification Code to continue').first.is_visible(timeout=60_000)
+                await page.locator('span', has_text='Enter Verification Code to continue').first.is_visible(
+                    timeout=60_000)
                 print(f"Account: {self.mail} message send..")
 
                 while True:
@@ -342,5 +348,3 @@ class AlphaOS:
             self.browser = None
             logger.info(f"Account: {self.mail} browser closed.")
             print(f"Account: {self.mail} browser closed.")
-
-
