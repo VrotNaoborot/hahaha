@@ -132,8 +132,11 @@ class AlphaOS:
                         logger.error(f"Account: {self.mail} check login. click btn login..")
                         print(f"Account: {self.mail} check login. click btn login..")
 
-                        await page.locator('xpath=//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click(timeout=60_000)
+                        await page.locator('xpath=//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click(
+                            timeout=60_000)
                         print("Click img")
+
+                        await page.wait_for_load_state('load')
 
                         # await self.user_is_login()
                         if await self.user_is_login(page):
@@ -220,11 +223,14 @@ class AlphaOS:
         try:
             print(f"Account: {self.mail} loading site...")
 
+            # input()
+
             async with page.expect_response(
                     lambda response: "api.kekkai.io/apis/users/profile" in response.url and response.request.method == 'GET',
                     timeout=30_000) as response_info:
                 await page.goto(f"https://alphaos.net/point")
 
+            input()
             response = await response_info.value
 
             if response.status == 200:
@@ -258,6 +264,15 @@ class AlphaOS:
                     logger.info(f"Account: {self.mail} user is not login..")
                     print(f"Account: {self.mail} user is not login..")
 
+                await page.wait_for_load_state('load')
+                print(f'Account: {self.mail} page is load')
+                logger.info(f'Account: {self.mail} page is load')
+
+                await page.reload(timeout=60_000)
+                print(f"Account: {self.mail} page reload")
+                logger.info(f"Account: {self.mail} page reload")
+
+                await page.wait_for_load_state('load')
                 await page.locator('xpath=//span[contains(text(), "JOIN NOW")]').first.click(timeout=60_000)
 
                 print(f"Account: {self.mail} click btn JOIN NOW")
