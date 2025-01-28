@@ -31,8 +31,6 @@ class AlphaOS:
 
     async def _check_data(self):
         await self._initialize_browser()
-        if not self.extension_id:
-            self.extension_id = await self.take_extension_id()
 
         if not self.user_agent:
             self.user_agent = ua.random
@@ -51,6 +49,8 @@ class AlphaOS:
                 await self._visit_site(site)
             await self.browser.close()
             logger.info(f"Account: {self.mail} Cookie farm is finished.")
+        except KeyboardInterrupt:
+            await self._close_browser()
         except Exception as ex:
             print(ex)
             logger.error(f"Account: {self.mail} Ex: {ex}")
@@ -68,6 +68,8 @@ class AlphaOS:
                 await asyncio.sleep(0.5)
 
             await page.close()
+        except KeyboardInterrupt:
+            await self._close_browser()
         except Exception as ex:
             logger.error(f"Account: {self.mail} broke farm site: {url}. Ex: {ex}")
 
@@ -92,6 +94,8 @@ class AlphaOS:
             return extension
         except PermissionError as ex:
             logger.error(f"Account: {self.mail} {ex}")
+        except KeyboardInterrupt:
+            await self._close_browser()
         except Exception as ex:
             logger.error(f"Account: {self.mail} {ex}")
 
@@ -117,7 +121,8 @@ class AlphaOS:
                         print(f"Account: {self.mail} logined")
                         pass
                     elif response_profile.status == 401:
-                        logger.error(f"Account: {self.mail} NEED LOGIN.")
+                        logger.error(f"Account: {self.mail} NEED LOGIN. {await response_profile.json()}")
+
                         return
                     else:
                         logger.error(
@@ -200,12 +205,8 @@ class AlphaOS:
                     await asyncio.sleep(not_found_sleep)
                     not_found_sleep *= 2
                     continue
-                finally:
-                    await self._close_browser()
-        except Exception as ex:
-            logger.error(f"Account: {self.mail} Err: {ex}")
-            print(f"Account: {self.mail} Err: {ex}")
-            return
+        except KeyboardInterrupt:
+            await self._close_browser()
         finally:
             await self._close_browser()
 
@@ -234,6 +235,8 @@ class AlphaOS:
         except TimeoutError:
             print(f"Account: {self.mail} request timed out. Skipping...")
             return False
+        except KeyboardInterrupt:
+            await self._close_browser()
         except Exception as e:
             print(f"Account: {self.mail} encountered an error: {e}")
             return False
@@ -254,24 +257,6 @@ class AlphaOS:
             await asyncio.sleep(2)
             await page.locator('xpath=//*[@id="content-:r7g:"]/div/div/div/span[6]/button/span/span/button').click(
                 timeout=60_000)
-
-            # print(f"Account: {self.mail} open login form...")
-            # await page.goto(f"https://alphaos.net/point#sign-in")
-            # await asyncio.sleep(5)
-            # input()
-
-            # await page.goto(f"chrome-extension://{self.extension_id}/popup.html")
-            # await page.wait_for_load_state("load")
-            # #
-            # await page.locator('//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click()
-            # await page.wait_for_load_state('load')
-            #
-            # button_locator_login = page.locator('button', has_text='Sign-In / Sign-Up')
-            # if not await button_locator_login.is_visible():
-            #     pass
-            #
-            # await button_locator_login.click()
-            # await page.wait_for_load_state('load')
 
             # await page.wait_for_selector('input[placeholder="Please enter email to continue"]')
             print(f"Account: {self.mail} enter email..")
@@ -313,7 +298,11 @@ class AlphaOS:
                 else:
                     print(f"Account: {self.mail} response status: {response_sign_in.status}. Try again")
                     continue
-
+        except TimeoutError as e:
+            logger.error(f"Account: {self.mail} {e}")
+            print(f"Account: {self.mail} {e}")
+        except KeyboardInterrupt:
+            await self._close_browser()
         except Exception as ex:
             logger.error(ex)
             print(ex)
@@ -345,5 +334,4 @@ class AlphaOS:
             logger.info(f"Account: {self.mail} browser closed.")
             print(f"Account: {self.mail} browser closed.")
 
-    # async def login(self):
-    #     if self.browser:
+
