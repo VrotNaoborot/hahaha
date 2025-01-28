@@ -97,15 +97,33 @@ class AlphaOS:
 
     async def work(self):
         try:
-            await self._check_data()
-
-            await self.browser.new_page()
-            page = await self.browser.new_page()
-
             not_found_sleep = NOT_FOUND_SLEEP_START
 
             while True:
                 try:
+                    await self._check_data()
+
+                    await self.browser.new_page()
+                    page = await self.browser.new_page()
+
+                    async with (page.expect_response(
+                            lambda response: "api.alphaos.net/apis/users/profile" in response.url and response.request.method == 'GET') as
+                    response_info):
+                        await page.goto(f'chrome-extension://{self.extension_id}/popup.html', timeout=60_000)
+
+                    response_profile = await response_info.value
+
+                    if response_profile.status == 200:
+                        print(f"Account: {self.mail} logined")
+                        pass
+                    elif response_profile.status == 401:
+                        logger.error(f"Account: {self.mail} NEED LOGIN.")
+                        return
+                    else:
+                        logger.error(
+                            f"Account: {self.mail} back code: {response_profile.status} data: {response_profile.json()}")
+                        print(f"Account: {self.mail} back code: {response_profile.status} data: {response_profile.json()}")
+
                     await page.goto(f'chrome-extension://{self.extension_id}/popup.html', timeout=60_000)
                     logger.info(f'{self.mail} Load popup')
                     print(f'{self.mail} Load popup')
@@ -120,16 +138,17 @@ class AlphaOS:
                     await page.wait_for_load_state('load', timeout=60_000)
                     await asyncio.sleep(random.randint(1, 3))
 
-                    button_locator_login = page.locator('button', has_text='Sign-In / Sign-Up')
+                    # button_locator_login = page.locator('button', has_text='Sign-In / Sign-Up')
 
-                    if await button_locator_login.is_visible(timeout=60_000):
-                        await button_locator_login.click(timeout=60_000)
-                        if await page.locator(
-                                'xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[2]/div[1]/div/div[2]/div[2]/div/span[2]/span').text_content() == '--':
-                            raise UnauthorizedError("User not login")
-                        else:
-                            print("check")
-                            continue
+                    # if await button_locator_login.is_visible(timeout=60_000):
+                    #     await button_locator_login.click(timeout=60_000)
+                    #     if await page.locator(
+                    #             'xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[2]/div[1]/div/div[2]/div[2]/div/span[2]/span').text_content(
+                    #         timeout=100_000) == '--':
+                    #         raise UnauthorizedError("User not login")
+                    #     else:
+                    #         print("back")
+                    #         continue
 
                     button_start_mining = page.locator('button', has_text='Start Mining')
                     button_stop_mining = page.locator('button', has_text='Stop Mining')
@@ -140,8 +159,8 @@ class AlphaOS:
                         logger.info(f"Account: {self.mail} Start mining.")
                         print(f"Account: {self.mail} Start mining.")
 
-                        if await page.locator('h2', has_text='Automated Mining').first.is_visible(timeout=60_000):
-                            await page.locator('xpath=//*[@id="content-:rt:"]/span[3]/button').click(timeout=60_000)
+                        # if await page.locator('h2', has_text='Automated Mining').first.is_visible(timeout=60_000):
+                        #     await page.locator('xpath=//*[@id="content-:rt:"]/span[3]/button').click(timeout=60_000)
 
                     elif await button_stop_mining.count() > 0:
                         logger.info(f"Account: {self.mail} Mining is already in progress.")
@@ -181,6 +200,8 @@ class AlphaOS:
                     await asyncio.sleep(not_found_sleep)
                     not_found_sleep *= 2
                     continue
+                finally:
+                    await self._close_browser()
         except Exception as ex:
             logger.error(f"Account: {self.mail} Err: {ex}")
             print(f"Account: {self.mail} Err: {ex}")
@@ -188,16 +209,43 @@ class AlphaOS:
         finally:
             await self._close_browser()
 
+    async def user_is_login(self, page):
+        try:
+            print(f"Account: {self.mail} loading site...")
+
+            async with page.expect_response(
+                    lambda response: "api.kekkai.io/apis/users/profile" in response.url and response.request.method == 'GET',
+                    timeout=30_000) as response_info:
+                await page.goto(f"https://alphaos.net/point")
+
+            response = await response_info.value
+
+            if response.status == 200:
+                print(f"Account: {self.mail} logged in!")
+                logger.info(f"Account: {self.mail} logged in!")
+                return True
+            elif response.status == 401:
+                print(f"Account: {self.mail} ❌ Unauthorized. Skipping...")
+                return False
+            else:
+                data = await response.json()
+                print(f"Account: {self.mail} profile returned {response.status} {data}")
+                return False
+        except TimeoutError:
+            print(f"Account: {self.mail} request timed out. Skipping...")
+            return False
+        except Exception as e:
+            print(f"Account: {self.mail} encountered an error: {e}")
+            return False
+
     async def login_account(self):
         try:
             await self._check_data()
             page = await self.browser.new_page()
 
-            print(f"Account: {self.mail} site load...")
-            await page.goto(f"https://alphaos.net/point")
-            await page.wait_for_load_state("load", timeout=60_000)
-            await asyncio.sleep(3)
-            print("site load")
+            if await self.user_is_login(page):
+                logger.info(f"Account: {self.mail} user is login")
+                return
 
             await page.locator(
                 'xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/div[1]').click(
@@ -230,6 +278,7 @@ class AlphaOS:
             await asyncio.sleep(3)
             input_mail = page.locator(
                 'input[placeholder="Please enter email to continue"]')
+
             await input_mail.click(timeout=60_000)
             await page.keyboard.type(self.mail, delay=300)
 
@@ -243,7 +292,8 @@ class AlphaOS:
                 timeout=60_000)
             print(f"Account: {self.mail} click next..")
 
-            await page.locator('xpath=//*[@id="content-:ra5:"]/div/span[2]/span/button').click(timeout=60_000)
+            await page.locator('xpath=//*[@id="content-:ra5:"]/div/span[2]/span/button').click(
+                timeout=60_000)  # https://api.kekkai.io/apis/users/sign-in
             print(f"Account: {self.mail} agree..")
 
             await page.locator('span', has_text='Enter Verification Code to continue').first.is_visible(timeout=60_000)
@@ -251,16 +301,18 @@ class AlphaOS:
 
             while True:
                 code = input(f"Account: {self.mail} enter code: ").strip()
-                await page.fill('xpath=/html/body/div[1]/div[4]/div/div[3]/div/div[3]/div/div/input', code)
-                await asyncio.sleep(3)
-                if await page.locator('span', has_text='Incorrect Verification Code, Try Again').first.is_visible(
-                        timeout=60_000):
-                    print(f"Account: {self.mail} incorrect code")
-                    await page.fill('xpath=/html/body/div[1]/div[4]/div/div[3]/div/div[3]/div/div/input', "")
-                    continue
-                if await page.locator('span', has_text='Welcome to AlphaOS!').first.is_visible(timeout=60_000):
-                    print(f"Account: {self.mail} Good login")
+                async with (page.expect_response(
+                        lambda response: "api.kekkai.io/apis/users/sign-in" in response.url and response.request.method == 'POST') as response_sign_in):
+                    await page.fill('xpath=/html/body/div[1]/div[4]/div/div[3]/div/div[3]/div/div/input', code)
+
+                response_sign_in = await response_sign_in.value
+                if response_sign_in.status == 201:
+                    print(f"Account: {self.mail} successful login. sleep 20 seconds for save cookie")
+                    await asyncio.sleep(20)
                     return
+                else:
+                    print(f"Account: {self.mail} response status: {response_sign_in.status}. Try again")
+                    continue
 
         except Exception as ex:
             logger.error(ex)
@@ -268,54 +320,30 @@ class AlphaOS:
         finally:
             await self._close_browser()
 
-    # async def create_profile_and_login(self):
-    #     if not self.user_agent:
-    #         self.user_agent = ua.random
-    #         await save_ua(user_id=self.id, ua=self.user_agent)
-
-    # logger.info(f"Account: {self.mail} login start")
-    # async with async_playwright() as p:
-    #     browser = await p.chromium.launch_persistent_context(
-    #         user_data_dir=SESSION_PATH / f"{self.mail.split('@')[0]}",
-    #         headless=False,
-    #         proxy=self.proxy,
-    #         args=[
-    #             f"--disable-extensions-except={EXTENSION_PATH}",
-    #             f"--load-extension={EXTENSION_PATH}",
-    #             # f"--headless=new"
-    #         ],
-    #         user_agent=self.user_agent
-    #     )
-    #     self.browser = browser
-    #
-    #     if not self.extension_id:
-    #         self.extension_id = await self.take_extension_id()
-    #
-    #     page = await browser.new_page()
-    #
-    #     await page.goto(f"chrome-extension://{self.extension_id}/popup.html")
-    #     await asyncio.sleep(10_000)
-
     async def _initialize_browser(self):
         p = await async_playwright().start()
         self.browser = await p.chromium.launch_persistent_context(
             user_data_dir=SESSION_PATH / f"{self.mail.split('@')[0]}",
             channel="chrome",
-            headless=False,
+            headless=True,
             no_viewport=False,
             proxy=self.proxy,
             args=[
                 f"--disable-extensions-except={EXTENSION_PATH}",
                 f"--load-extension={EXTENSION_PATH}",
-                # f"--headless=new"
+                f"--headless=new"
             ],
             user_agent=self.user_agent
         )
+        logger.info(f"Account: {self.mail} browser create")
+        print(f"Account: {self.mail} browser create")
 
     async def _close_browser(self):
         if self.browser:
             await self.browser.close()
             self.browser = None
+            logger.info(f"Account: {self.mail} browser closed.")
+            print(f"Account: {self.mail} browser closed.")
 
     # async def login(self):
     #     if self.browser:
