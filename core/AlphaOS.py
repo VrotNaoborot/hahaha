@@ -222,11 +222,8 @@ class AlphaOS:
             response = await response_info.value
 
             if response.status == 200:
-                print(f"Account: {self.mail} logged in!")
-                logger.info(f"Account: {self.mail} logged in!")
                 return True
             elif response.status == 401:
-                print(f"Account: {self.mail} ❌ Unauthorized. Skipping...")
                 return False
             else:
                 data = await response.json()
@@ -242,85 +239,97 @@ class AlphaOS:
             return False
 
     async def login_account(self):
-        try:
-            await self._check_data()
-            page = await self.browser.new_page()
+        while True:
+            try:
+                await self._check_data()
+                page = await self.browser.new_page()
 
-            if await self.user_is_login(page):
-                logger.info(f"Account: {self.mail} user is login")
-                return
-
-            await page.locator(
-                'xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/div[1]').click(
-                timeout=60_000)
-            print("click")
-            await asyncio.sleep(2)
-            await page.locator('xpath=//*[@id="content-:r7g:"]/div/div/div/span[6]/button/span/span/button').click(
-                timeout=60_000)
-
-            # await page.wait_for_selector('input[placeholder="Please enter email to continue"]')
-            print(f"Account: {self.mail} enter email..")
-            await asyncio.sleep(3)
-            input_mail = page.locator(
-                'input[placeholder="Please enter email to continue"]')
-
-            await input_mail.click(timeout=60_000)
-            await page.keyboard.type(self.mail, delay=300)
-
-            if await page.locator('span', has_text='Invalid Address').first.is_visible(timeout=60_000):
-                logger.error(f"Account: {self.mail} incorrect mail.")
-                print(f"Account: {self.mail} incorrect mail.")
-                exit()
-
-            await page.locator(
-                "xpath=/html/body/div[1]/div[4]/div/div[2]/div/div[3]/div/div[3]/span/span/button").click(
-                timeout=60_000)
-            print(f"Account: {self.mail} click next..")
-
-            await page.locator('xpath=//*[@id="content-:ra5:"]/div/span[2]/span/button').click(
-                timeout=60_000)  # https://api.kekkai.io/apis/users/sign-in
-            print(f"Account: {self.mail} agree..")
-
-            await page.locator('span', has_text='Enter Verification Code to continue').first.is_visible(timeout=60_000)
-            print(f"Account: {self.mail} message send..")
-
-            while True:
-                code = input(f"Account: {self.mail} enter code: ").strip()
-                async with (page.expect_response(
-                        lambda response: "api.kekkai.io/apis/users/sign-in" in response.url and response.request.method == 'POST') as response_sign_in):
-                    await page.fill('xpath=/html/body/div[1]/div[4]/div/div[3]/div/div[3]/div/div/input', code)
-
-                response_sign_in = await response_sign_in.value
-                if response_sign_in.status == 201:
-                    print(f"Account: {self.mail} successful login. sleep 20 seconds for save cookie")
-                    await asyncio.sleep(20)
+                if await self.user_is_login(page):
+                    logger.info(f"Account: {self.mail} user is login")
+                    print(f"Account: {self.mail} user is login!")
                     return
                 else:
-                    print(f"Account: {self.mail} response status: {response_sign_in.status}. Try again")
-                    continue
-        except TimeoutError as e:
-            logger.error(f"Account: {self.mail} {e}")
-            print(f"Account: {self.mail} {e}")
-        except KeyboardInterrupt:
-            await self._close_browser()
-        except Exception as ex:
-            logger.error(ex)
-            print(ex)
-        finally:
-            await self._close_browser()
+                    logger.info(f"Account: {self.mail} user is not login..")
+                    print(f"Account: {self.mail} user is not login..")
+
+                await page.locator('xpath=//span[contains(text(), "JOIN NOW")]').first.click(timeout=60_000)
+
+
+                print(f"Account: {self.mail} click btn JOIN NOW")
+                logger.info(f"Account: {self.mail} click btn JOIN NOW")
+
+                # await page.locator(
+                #     'xpath=/html/body/div[1]/div[4]/div/div[1]/div/span/div/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/div[1]').click(
+                #     timeout=60_000)
+                # print("click")
+                # await asyncio.sleep(2)
+                # await page.locator('xpath=//*[@id="content-:r7g:"]/div/div/div/span[6]/button/span/span/button').click(
+                #     timeout=60_000)
+
+                # await page.wait_for_selector('input[placeholder="Please enter email to continue"]')
+                print(f"Account: {self.mail} enter email..")
+                await asyncio.sleep(3)
+                input_mail = page.locator(
+                    'input[placeholder="Please enter email to continue"]')
+
+                await input_mail.click(timeout=60_000)
+                await page.keyboard.type(self.mail, delay=300)
+
+                if await page.locator('span', has_text='Invalid Address').first.is_visible(timeout=60_000):
+                    logger.error(f"Account: {self.mail} incorrect mail.")
+                    print(f"Account: {self.mail} incorrect mail.")
+                    exit()
+
+                await page.locator(
+                    "xpath=/html/body/div[1]/div[4]/div/div[2]/div/div[3]/div/div[3]/span/span/button").click(
+                    timeout=60_000)
+                print(f"Account: {self.mail} click next..")
+
+                await page.locator('xpath=//*[@id="content-:ra5:"]/div/span[2]/span/button').click(
+                    timeout=60_000)  # https://api.kekkai.io/apis/users/sign-in
+                print(f"Account: {self.mail} agree..")
+
+                await page.locator('span', has_text='Enter Verification Code to continue').first.is_visible(timeout=60_000)
+                print(f"Account: {self.mail} message send..")
+
+                while True:
+                    code = input(f"Account: {self.mail} enter code: ").strip()
+                    async with (page.expect_response(
+                            lambda response: "api.kekkai.io/apis/users/sign-in" in response.url and response.request.method == 'POST') as response_sign_in):
+                        await page.fill('xpath=/html/body/div[1]/div[4]/div/div[3]/div/div[3]/div/div/input', code)
+
+                    response_sign_in = await response_sign_in.value
+                    if response_sign_in.status == 201:
+                        print(f"Account: {self.mail} successful login. sleep 20 seconds for save cookie")
+                        await asyncio.sleep(20)
+                        return
+                    else:
+                        print(f"Account: {self.mail} response status: {response_sign_in.status}. Try again")
+                        continue
+            except TimeoutError as e:
+                logger.error(f"Account: {self.mail} {e} try again..")
+                print(f"Account: {self.mail} {e} try again..")
+                continue
+            except KeyboardInterrupt:
+                await self._close_browser()
+            except Exception as ex:
+                logger.error(ex)
+                print(ex)
+            finally:
+                await self._close_browser()
 
     async def _initialize_browser(self):
         p = await async_playwright().start()
         self.browser = await p.chromium.launch_persistent_context(
             user_data_dir=SESSION_PATH / f"{self.mail.split('@')[0]}",
             channel="chrome",
-            headless=True,
+            headless=False,
             no_viewport=False,
             proxy=self.proxy,
             args=[
                 f"--disable-extensions-except={EXTENSION_PATH}",
                 f"--load-extension={EXTENSION_PATH}",
-                f"--headless=new"
+                # f"--headless=new"
             ],
             user_agent=self.user_agent
         )
