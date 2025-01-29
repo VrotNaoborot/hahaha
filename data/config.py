@@ -18,7 +18,7 @@ SESSION_PATH = CONFIG_DIR / 'sessions'
 ACCOUNTS_PATH = CONFIG_DIR / 'accounts.csv'
 ACCOUNT_CHECK_INTERVAL = [1000, 5000]  # seconds
 
-NOT_FOUND_SLEEP_START = 5  # seconds
+ERR_REBOOT_TIME_START = 5   # seconds
 
 SITES_FARM_COOKIES = [
     "https://ebay.com",

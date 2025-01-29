@@ -1,0 +1,6 @@
+2025/01/29-05:15:20.497 3803 Reusing MANIFEST /Users/panu/PycharmProjects/hahaha/data/sessions/fish62742/Default/Local Storage/leveldb/MANIFEST-000001
+2025/01/29-05:15:20.499 3803 Recovering log #8
+2025/01/29-05:15:20.501 3803 Reusing old log /Users/panu/PycharmProjects/hahaha/data/sessions/fish62742/Default/Local Storage/leveldb/000008.log 
+2025/01/29-05:15:31.418 3803 Level-0 table #11: started
+2025/01/29-05:15:31.429 3803 Level-0 table #11: 61936 bytes OK
+2025/01/29-05:15:31.442 3803 Delete type=0 #8

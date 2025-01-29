@@ -105,8 +105,7 @@ class AlphaOS:
 
     async def work(self):
         try:
-            not_found_sleep = NOT_FOUND_SLEEP_START
-
+            err_reboot_time_start = ERR_REBOOT_TIME_START
             while True:
                 try:
                     print("Check data")
@@ -152,13 +151,6 @@ class AlphaOS:
                         print(
                             f"Account: {self.mail} back code: {response_profile.status} data: {response_profile.json()}")
 
-                    # await page.goto(f'chrome-extension://{self.extension_id}/popup.html', timeout=60_000)
-
-                    # await asyncio.sleep(random.randint(5, 10))
-                    # await page.locator('xpath=//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click(
-                    #     timeout=60_000)
-                    # logger.info(f'{self.mail} Load mining page')
-                    # print(f'{self.mail} Load mining page')
                     await page.locator('xpath=//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click(
                         timeout=60_000)
                     print("Click img")
@@ -182,10 +174,10 @@ class AlphaOS:
                         logger.info(f"Account: {self.mail} Mining is already in progress.")
                     else:
                         logger.error(
-                            f"Account: {self.mail} Buttons start/stop not found. Sleep delay: {not_found_sleep}")
-                        print(f"Account: {self.mail} Buttons start/stop not found. Sleep delay: {not_found_sleep}")
-                        await asyncio.sleep(not_found_sleep)
-                        not_found_sleep *= 2
+                            f"Account: {self.mail} Buttons start/stop not found. Sleep delay: {err_reboot_time_start}")
+                        print(f"Account: {self.mail} Buttons start/stop not found. Sleep delay: {err_reboot_time_start}")
+                        await asyncio.sleep(err_reboot_time_start)
+                        err_reboot_time_start *= 2
                         continue
 
                     mining_points = await page.locator(
@@ -213,8 +205,8 @@ class AlphaOS:
                 except TimeoutError as e:
                     logger.error(f"Account: {self.mail} not found item. Try again... \n{e}")
                     print(f"Account: {self.mail} not found item. Try again... \n{e}")
-                    await asyncio.sleep(not_found_sleep)
-                    not_found_sleep *= 2
+                    await asyncio.sleep(err_reboot_time_start)
+                    err_reboot_time_start *= 2
                     continue
         except KeyboardInterrupt:
             await self._close_browser()
@@ -230,7 +222,6 @@ class AlphaOS:
                     timeout=30_000) as response_info:
                 await page.goto(f"https://alphaos.net/point")
 
-            input()
             response = await response_info.value
 
             if response.status == 200:
@@ -246,11 +237,16 @@ class AlphaOS:
             return False
         except KeyboardInterrupt:
             await self._close_browser()
+            raise
+        except Error as e:
+            print(f"Account: {self.mail} network error: {e}")
+
         except Exception as e:
             print(f"Account: {self.mail} encountered an error: {e}")
             return False
 
     async def login_account(self):
+        err_reboot_time_start = ERR_REBOOT_TIME_START
         while True:
             try:
                 await self._check_data()
@@ -325,17 +321,25 @@ class AlphaOS:
                         await asyncio.sleep(20)
                         return
                     else:
-                        print(f"Account: {self.mail} response status: {response_sign_in.status}. Try again")
+                        print(f"Account: {self.mail} response status: {response_sign_in.status}. sleep: {err_reboot_time_start} and try again")
+                        await asyncio.sleep(err_reboot_time_start)
+                        err_reboot_time_start *= 2
+
                         continue
             except TimeoutError as e:
-                logger.error(f"Account: {self.mail} {e} try again..")
-                print(f"Account: {self.mail} {e} try again..")
+                logger.error(f"Account: {self.mail} {e} Sleep: {err_reboot_time_start}")
+                print(f"Account: {self.mail} {e} Sleep: {err_reboot_time_start}")
+                await asyncio.sleep(err_reboot_time_start)
+                err_reboot_time_start *= 2
                 continue
             except KeyboardInterrupt:
                 await self._close_browser()
             except Exception as ex:
-                logger.error(ex)
-                print(ex)
+                logger.error(f"Account: {self.mail} {ex} Sleep: {err_reboot_time_start}")
+                print(f"Account: {self.mail} {ex} Sleep: {err_reboot_time_start}")
+                await asyncio.sleep(err_reboot_time_start)
+                err_reboot_time_start *= 2
+                continue
             finally:
                 await self._close_browser()
 
