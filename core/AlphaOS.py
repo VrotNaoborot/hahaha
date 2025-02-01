@@ -133,11 +133,8 @@ class AlphaOS:
 
                         await page.locator('xpath=//*[@id="__plasmo"]/span/span/div/div[1]/div[1]/div[1]').click(
                             timeout=60_000)
-                        print("Click img")
-
                         await page.wait_for_load_state('load')
 
-                        # await self.user_is_login()
                         if await self.user_is_login(page):
                             print(f"Account: {self.mail} site back 200. try again")
                             await page.close()
@@ -175,7 +172,8 @@ class AlphaOS:
                     else:
                         logger.error(
                             f"Account: {self.mail} Buttons start/stop not found. Sleep delay: {err_reboot_time_start}")
-                        print(f"Account: {self.mail} Buttons start/stop not found. Sleep delay: {err_reboot_time_start}")
+                        print(
+                            f"Account: {self.mail} Buttons start/stop not found. Sleep delay: {err_reboot_time_start}")
                         await asyncio.sleep(err_reboot_time_start)
                         err_reboot_time_start *= 2
                         continue
@@ -214,8 +212,6 @@ class AlphaOS:
     async def user_is_login(self, page):
         try:
             print(f"Account: {self.mail} loading site...")
-
-            # input()
 
             async with page.expect_response(
                     lambda response: "api.kekkai.io/apis/users/profile" in response.url and response.request.method == 'GET',
@@ -257,6 +253,7 @@ class AlphaOS:
                     print(f"Account: {self.mail} user is login!")
                     return
                 else:
+                    await set_need_login_status(self.id)
                     logger.info(f"Account: {self.mail} user is not login..")
                     print(f"Account: {self.mail} user is not login..")
 
@@ -321,7 +318,8 @@ class AlphaOS:
                         await asyncio.sleep(20)
                         return
                     else:
-                        print(f"Account: {self.mail} response status: {response_sign_in.status}. sleep: {err_reboot_time_start} and try again")
+                        print(
+                            f"Account: {self.mail} response status: {response_sign_in.status}. sleep: {err_reboot_time_start} and try again")
                         await asyncio.sleep(err_reboot_time_start)
                         err_reboot_time_start *= 2
 

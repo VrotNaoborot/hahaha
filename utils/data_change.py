@@ -24,12 +24,13 @@ async def save_ex_id(extension_id: str, user_id: str):
                 rows.append(row)
 
         with open(ACCOUNTS_PATH, "w", newline="", encoding="utf-8") as file:
-            writer = csv.DictWriter(file, fieldnames=["id", "mail", "proxy", "extension_id", "user_agent"],
+            writer = csv.DictWriter(file,
+                                    fieldnames=["id", "mail", "proxy", "extension_id", "user_agent", "need_login"],
                                     delimiter=";")
             writer.writeheader()
             writer.writerows(rows)
     except Exception as ex:
-        print(ex)
+        logger.error(ex)
 
 
 async def save_ua(user_id: str, ua: str):
@@ -43,9 +44,30 @@ async def save_ua(user_id: str, ua: str):
                 rows.append(row)
 
         with open(ACCOUNTS_PATH, 'w', newline="", encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=["id", "mail", "proxy", "extension_id", "user_agent"],
+            writer = csv.DictWriter(file,
+                                    fieldnames=["id", "mail", "proxy", "extension_id", "user_agent", "need_login"],
                                     delimiter=";")
             writer.writeheader()
             writer.writerows(rows)
     except Exception as ex:
-        print(ex)
+        logger.error(ex)
+
+
+async def set_need_login_status(user_id: str):
+    try:
+        rows = []
+        with open(ACCOUNTS_PATH, 'r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file, delimiter=';')
+            for row in reader:
+                if row['id'] == user_id:
+                    row['need_login'] = 1
+                rows.append(row)
+
+        with open(ACCOUNTS_PATH, 'w', newline='', encoding='utf-8') as file:
+            writer = csv.DictWriter(file,
+                                    fieldnames=["id", "mail", "proxy", "extension_id", "user_agent", "need_login"],
+                                    delimiter=";")
+            writer.writeheader()
+            writer.writerows(rows)
+    except Exception as ex:
+        logger.error(ex)
