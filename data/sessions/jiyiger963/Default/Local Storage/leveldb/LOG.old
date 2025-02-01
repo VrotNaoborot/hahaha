@@ -1,6 +1,0 @@
-2025/01/29-05:13:28.638 3703 Reusing MANIFEST /Users/panu/PycharmProjects/hahaha/data/sessions/jiyiger963/Default/Local Storage/leveldb/MANIFEST-000001
-2025/01/29-05:13:28.640 3703 Recovering log #3
-2025/01/29-05:13:28.640 3703 Reusing old log /Users/panu/PycharmProjects/hahaha/data/sessions/jiyiger963/Default/Local Storage/leveldb/000003.log 
-2025/01/29-05:15:12.677 3703 Level-0 table #5: started
-2025/01/29-05:15:12.691 3703 Level-0 table #5: 150079 bytes OK
-2025/01/29-05:15:12.701 3703 Delete type=0 #3
